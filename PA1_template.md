@@ -1,15 +1,10 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: "Eduardo Garcia"
-output: 
-  html_document: 
-    keep_md: yes
-    self_contained: no
----
+# Reproducible Research: Peer Assessment 1
+Eduardo Garcia  
 
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 unzip(zipfile = "activity.zip")
 
 data <- read.csv("activity.csv", header=TRUE)
@@ -19,7 +14,8 @@ data <- read.csv("activity.csv", header=TRUE)
 
 For this part of the assignment we can ignore the missing values in the dataset.
 
-```{r}
+
+```r
 clean_data <- data[which(data$steps != "NA"), ]
 ```
 
@@ -34,7 +30,8 @@ data.
 * Bars can be reordered in bar charts but not in histograms.
 
 
-```{r histogramNAIgnored}
+
+```r
 library(plyr)
 
 total_steps_by_day <- ddply(clean_data, .(date), summarise, steps = sum(steps))
@@ -45,13 +42,26 @@ hist(total_steps_by_day$steps,
      ylab = "Frequency")
 ```
 
+![](PA1_template_files/figure-html/histogramNAIgnored-1.png)<!-- -->
+
 Finally we calculate the mean and median of the total number of steps taken per 
 day.
 
-```{r}
-mean(total_steps_by_day$steps)
 
+```r
+mean(total_steps_by_day$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(total_steps_by_day$steps)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
@@ -59,7 +69,8 @@ median(total_steps_by_day$steps)
 This time series plot represents the 5-minute interval (x-axis) and the average 
 number of steps taken, averaged across all days (y-axis):
 
-```{r AverageDailyActivityPattern}
+
+```r
 average_steps_by_interval <- 
   ddply(clean_data, .(interval), summarise, steps = mean(steps))
 
@@ -71,12 +82,20 @@ plot(average_steps_by_interval$interval,
      ylab="Average number of steps")
 ```
 
+![](PA1_template_files/figure-html/AverageDailyActivityPattern-1.png)<!-- -->
+
 The 5-minute interval that contains the maximum number of steps on average 
 across all the days is:
 
-```{r}
+
+```r
 average_steps_by_interval[
   average_steps_by_interval$steps == max(average_steps_by_interval$steps),]
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
 
@@ -88,8 +107,13 @@ summaries of the data.
 The total number of missing values in the dataset (i.e. the total number of rows 
 with NAs) is calculated as follows:
 
-```{r}
+
+```r
 sum(is.na(data$steps))
+```
+
+```
+## [1] 2304
 ```
 
 In order to fill all of the missing values in the dataset, we use the mean for 
@@ -97,11 +121,18 @@ that 5-minute interval. As a result we have a new dataset that is equal to the
 original dataset but with the missing data filled in.
 
 
-```{r}
+
+```r
 colnames(average_steps_by_interval)[2] <- "intervalAverage"
 
 filled_data <- arrange(join(data, average_steps_by_interval), interval)
+```
 
+```
+## Joining by: interval
+```
+
+```r
 filled_data$steps[is.na(filled_data$steps)] <- 
   filled_data$intervalAverage[is.na(filled_data$steps)]
 ```
@@ -109,7 +140,8 @@ filled_data$steps[is.na(filled_data$steps)] <-
 In the following block we plot the histogram of the total number of steps taken 
 each day: 
 
-```{r histogramFilledNA}
+
+```r
 filled_total_steps_by_day <- 
   ddply(filled_data, .(date), summarise, steps = sum(steps))
 
@@ -119,13 +151,26 @@ hist(filled_total_steps_by_day$steps,
      ylab = "Frequency")
 ```
 
+![](PA1_template_files/figure-html/histogramFilledNA-1.png)<!-- -->
+
 Finally we calculate the mean and median of the total number of steps taken per 
 day with the filled data.
 
-```{r}
-mean(filled_total_steps_by_day$steps)
 
+```r
+mean(filled_total_steps_by_day$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(filled_total_steps_by_day$steps)
+```
+
+```
+## [1] 10766.19
 ```
 
 As expected, the mean and the median values are higher after inputing the 
@@ -140,7 +185,8 @@ First with the `weekdays()` function we obtain the weekdays from the dataset and
 then we add a factor variable to the dataset with the type of day ("weekday or 
 weekend"):
 
-```{r}
+
+```r
 weekdays <- weekdays(as.Date(filled_data$date))
 
 weekdays_data <- transform(filled_data, day = weekdays)
@@ -160,10 +206,13 @@ weekends we create a panel plot containing a time series plot of the 5-minute
 interval (x-axis) and the average number of steps taken, averaged across all 
 weekday days or weekend days (y-axis). 
 
-```{r weekdaysVsweekend}
+
+```r
 library(lattice)
 
 xyplot(steps ~ interval | day_type,
        data = average_by_interval_day_type,
        layout = c(1, 2), type="l")
 ```
+
+![](PA1_template_files/figure-html/weekdaysVsweekend-1.png)<!-- -->
